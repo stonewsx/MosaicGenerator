@@ -13,7 +13,12 @@ function MosaicMontageGenerator() {
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.onload = (event) => {
-      setMainImage(event.target.result);
+      const img = new Image();
+      img.onload = () => {
+        setResolution({ width: img.width, height: img.height }); // 设置宽高为主图像的分辨率
+        setMainImage(event.target.result);
+      };
+      img.src = event.target.result;
     };
     reader.readAsDataURL(file);
   };
@@ -107,7 +112,7 @@ function MosaicMontageGenerator() {
             const bestMatch = resizedImages.pop(); // 使用 pop 從陣列中取出圖像
 
             if (bestMatch) {
-              adjustImageColor(bestMatch, mainAvgColor);
+              adjustImageColor(bestMatch, mainAvgColor, thumbWidth, thumbHeight);
               ctx.drawImage(bestMatch, x, y, thumbWidth, thumbHeight);
               usedImages.add(bestMatch); // 記錄已使用的小圖像
             }
@@ -138,9 +143,9 @@ function MosaicMontageGenerator() {
     return { r, g, b };
   };
 
-  const adjustImageColor = (canvas, targetColor) => {
+  const adjustImageColor = (canvas, targetColor, width, height) => {
     const ctx = canvas.getContext('2d');
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, width, height);
     const data = imageData.data;
 
     const currentAvgColor = getAverageColor(imageData);
