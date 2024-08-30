@@ -7,6 +7,7 @@ function MosaicMontageGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [resolution, setResolution] = useState({ width: 1000, height: 1000 });
+  const [cols, setCols] = useState(50); // 預設列數為50
 
   const handleMainImageChange = (e) => {
     const file = e.target.files[0];
@@ -37,6 +38,10 @@ function MosaicMontageGenerator() {
     setResolution({ ...resolution, [e.target.name]: parseInt(e.target.value, 10) });
   };
 
+  const handleColsChange = (e) => {
+    setCols(parseInt(e.target.value, 10));
+  };
+
   const generateMosaicMontage = () => {
     if (!mainImage || smallImages.length === 0) return;
 
@@ -57,7 +62,6 @@ function MosaicMontageGenerator() {
 
       ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
 
-      const cols = 50; // 可以调整列数来增加小图像数量
       const rows = Math.ceil(targetHeight / (targetWidth / cols));
       const thumbWidth = targetWidth / cols;
       const thumbHeight = targetHeight / rows;
@@ -91,7 +95,8 @@ function MosaicMontageGenerator() {
 
         shuffleArray(resizedImages);
 
-        const usedImages = new Set();
+        const usedImages = new Set(); // 用於追踪已使用的圖像
+
         for (let i = 0; i < rows; i++) {
           for (let j = 0; j < cols; j++) {
             const x = j * thumbWidth;
@@ -99,12 +104,12 @@ function MosaicMontageGenerator() {
             const mainBlock = ctx.getImageData(x, y, thumbWidth, thumbHeight);
             const mainAvgColor = getAverageColor(mainBlock);
 
-            const bestMatch = resizedImages.pop(); // 使用pop从数组中取出图像
+            const bestMatch = resizedImages.pop(); // 使用 pop 從陣列中取出圖像
 
             if (bestMatch) {
               adjustImageColor(bestMatch, mainAvgColor);
               ctx.drawImage(bestMatch, x, y, thumbWidth, thumbHeight);
-              usedImages.add(bestMatch);
+              usedImages.add(bestMatch); // 記錄已使用的小圖像
             }
 
             loadedCount++;
@@ -188,6 +193,18 @@ function MosaicMontageGenerator() {
           onChange={handleResolutionChange}
           disabled={isGenerating}
         />
+      </div>
+      <div>
+        <label>Columns:</label>
+        <select
+          name="cols"
+          value={cols}
+          onChange={handleColsChange}
+          disabled={isGenerating}
+        >
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
       </div>
       <button onClick={generateMosaicMontage} disabled={isGenerating}>
         {isGenerating ? 'Generating...' : 'Generate Mosaic'}
